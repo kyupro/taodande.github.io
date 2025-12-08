@@ -676,28 +676,100 @@ function dac_biet(_0x55b2c8) {
     output['value'] = result, document['getElementById'](_0x620ee3(0x16e))[_0x620ee3(0x156)] = ![], document['getElementById']('lay_db_outputcount')['innerText'] = '(' + result[_0x620ee3(0x13f)] + _0x620ee3(0x122);
 }
 
-function lay(_0x5701ea) {
-    const _0x3b0f37 = _0x4d24;
-    dan1 = document['getElementById'](_0x3b0f37(0x15f))[_0x3b0f37(0x13a)], dan2 = document[_0x3b0f37(0x170)]('ghep2_dan2')[_0x3b0f37(0x13a)], output = document[_0x3b0f37(0x170)](_0x3b0f37(0x114)), dan1 = getNumbers(dan1), dan2 = getNumbers(dan2), result = [];
-    switch (_0x5701ea) {
-        case 0x1:
-            result = dan1[_0x3b0f37(0x12c)](_0x3aa417 => dan2['includes'](_0x3aa417));
-            break;
-        case 0x2:
-            result = Array[_0x3b0f37(0x177)](new Set([...dan1, ...dan2]));
-            break;
-        case 0x3:
-            result = Array['from'](Array(0x64)[_0x3b0f37(0x11e)]())[_0x3b0f37(0x12c)](_0x550824 => !dan1[_0x3b0f37(0x115)](_0x550824))[_0x3b0f37(0x12c)](_0x1d9501 => !dan2['includes'](_0x1d9501));
-            break;
-        case 0x4:
-            result = dan1[_0x3b0f37(0x12c)](_0x57063 => !dan2[_0x3b0f37(0x115)](_0x57063));
-            break;
-        case 0x5:
-            result = dan2[_0x3b0f37(0x12c)](_0x378d91 => !dan1[_0x3b0f37(0x115)](_0x378d91));
-            break;
-    }
-    output[_0x3b0f37(0x13a)] = result[_0x3b0f37(0x13f)] == 0x0 ? 'Không\x20có\x20số\x20nào!' : result['map'](_0x3da41b => _0x3da41b[_0x3b0f37(0x155)]()[_0x3b0f37(0x120)](0x2, '0'))[_0x3b0f37(0x14c)](), document[_0x3b0f37(0x170)](_0x3b0f37(0x144))[_0x3b0f37(0x14f)] = '(' + result[_0x3b0f37(0x13f)] + _0x3b0f37(0x122), document['getElementById'](_0x3b0f37(0x144))[_0x3b0f37(0x156)] = result['length'] == 0x0;
+// =====================
+// GHEP2: Dàn 2D-1 / Dàn 2D-2
+// Cho phép số 2–3–4 chữ số
+// =====================
+
+// Tách chuỗi thành các token số 2–4 chữ số, giữ nguyên số 0 đầu
+function ghep2ParseTokens(str) {
+  const m = String(str || '').match(/\d{2,4}/g);
+  return m ? m : [];
 }
+
+function lay(mode) {
+  // Lấy input & output
+  const dan1Raw   = document.getElementById('ghep2_dan1').value;
+  const dan2Raw   = document.getElementById('ghep2_dan2').value;
+  const outputEl  = document.getElementById('ghep2_output');
+  const countEl   = document.getElementById('ghep2_outputcount');
+
+  // Tách số 2–4 chữ số, bỏ trùng trong từng dàn
+  let dan1 = ghep2ParseTokens(dan1Raw);
+  let dan2 = ghep2ParseTokens(dan2Raw);
+
+  dan1 = Array.from(new Set(dan1));
+  dan2 = Array.from(new Set(dan2));
+
+  const set1 = new Set(dan1);
+  const set2 = new Set(dan2);
+
+  let result = [];
+
+  switch (mode) {
+    case 1: // Lấy trùng: xuất hiện trong cả 2 dàn
+      result = dan1.filter(x => set2.has(x));
+      break;
+
+    case 2: // Lấy hết: xuất hiện ít nhất 1 trong 2 dàn (union)
+      result = Array.from(new Set([...dan1, ...dan2]));
+      break;
+
+    case 3: {
+      // Loại hết:
+      // - Nếu TẤT CẢ đều là số 2D -> giữ logic cũ: lấy 00–99 bỏ hết số xuất hiện trong 2 dàn
+      // - Nếu có 3D/4D -> dùng "hiệu đối xứng": các số chỉ nằm ở 1 trong 2 dàn
+      const allTokens  = [...dan1, ...dan2];
+      const allAre2D   = allTokens.length > 0 && allTokens.every(t => t.length === 2);
+
+      if (allAre2D) {
+        // Domain 00–99
+        const full2D = [];
+        for (let i = 0; i < 100; i++) {
+          full2D.push(i.toString().padStart(2, '0'));
+        }
+        result = full2D.filter(t => !set1.has(t) && !set2.has(t));
+      } else {
+        // Hiệu đối xứng cho 3D/4D
+        const union = Array.from(new Set([...dan1, ...dan2]));
+        result = union.filter(t => !(set1.has(t) && set2.has(t)));
+      }
+      break;
+    }
+
+    case 4: // 1 Loại 2: Dàn 1 bỏ số xuất hiện trong dàn 2
+      result = dan1.filter(x => !set2.has(x));
+      break;
+
+    case 5: // 2 Loại 1: Dàn 2 bỏ số xuất hiện trong dàn 1
+      result = dan2.filter(x => !set1.has(x));
+      break;
+
+    default:
+      result = [];
+  }
+
+  // Xuất kết quả
+  if (!result.length) {
+    outputEl.value = 'Không có số nào!';
+    if (countEl) {
+      countEl.hidden = true;
+    }
+  } else {
+    // Sắp xếp: ưu tiên số ngắn hơn, rồi theo thứ tự từ điển
+    result.sort((a, b) => {
+      if (a.length === b.length) return a < b ? -1 : a > b ? 1 : 0;
+      return a.length - b.length;
+    });
+
+    outputEl.value = result.join(',');
+    if (countEl) {
+      countEl.innerText = '(' + result.length + ' số)';
+      countEl.hidden = false;
+    }
+  }
+}
+
 
 function xien() {
     const _0x3af08a = _0x4d24;
