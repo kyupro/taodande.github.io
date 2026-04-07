@@ -61,18 +61,37 @@ function getNumbers(_0x1c3b9e) {
 
 
 function taoMuc2() {
-    const _0x23804a = _0x4d24;
-    input = document[_0x23804a(0x170)](_0x23804a(0x138))[_0x23804a(0x13a)], counts = new Array(0x64)['fill'](0x0), excepts = [], getNumbers(input)[_0x23804a(0x151)](_0x1d58a1 => {
-        const _0x7bfb91 = _0x23804a;
-        if (_0x1d58a1 >= 0x0 && _0x1d58a1 <= 0x63) counts[_0x1d58a1] += 0x1;
-        else excepts[_0x7bfb91(0x163)](_0x1d58a1);
-    }), result = excepts[_0x23804a(0x13f)] > 0x0 ? _0x23804a(0x140) + excepts[_0x23804a(0x13f)] + _0x23804a(0x136) + excepts + '\x0a\x0a' : '', groups = Array[_0x23804a(0x177)](new Set(counts))['sort']((_0x5ab039, _0x27f476) => _0x5ab039 - _0x27f476), groups[_0x23804a(0x151)](_0x57f11c => {
-        const _0x1e419b = _0x23804a;
-        numbers = [], counts[_0x1e419b(0x151)]((_0x5abb13, _0x5bc7c6) => {
-            const _0x4a7865 = _0x1e419b;
-            if (_0x57f11c == _0x5abb13) numbers[_0x4a7865(0x163)](_0x5bc7c6[_0x4a7865(0x155)]()[_0x4a7865(0x120)](0x2, '0'));
-        }), result += _0x1e419b(0x127) + _0x57f11c + _0x1e419b(0x147) + numbers[_0x1e419b(0x13f)] + _0x1e419b(0x12b) + numbers + '\x0a';
-    }), document[_0x23804a(0x170)]('tms_txt_output')[_0x23804a(0x13a)] = result, document[_0x23804a(0x170)](_0x23804a(0x131))[_0x23804a(0x156)] = !![];
+  const input = document.getElementById('tms_txt_input').value;
+
+  // Chỉ lấy đúng các token 2 chữ số, giữ nguyên số 0 đầu
+  const tokens = String(input).match(/\d{2}/g) || [];
+
+  const counts = new Array(100).fill(0);
+
+  tokens.forEach(tok => {
+    const n = Number(tok);
+    if (n >= 0 && n <= 99) {
+      counts[n] += 1;
+    }
+  });
+
+  const groups = Array.from(new Set(counts)).sort((a, b) => a - b);
+
+  let result = '';
+
+  groups.forEach(level => {
+    const numbers = [];
+    counts.forEach((count, i) => {
+      if (count === level) {
+        numbers.push(String(i).padStart(2, '0'));
+      }
+    });
+
+    result += `Mức ${level}: (${numbers.length} số)\n${numbers.join(',')}\n\n`;
+  });
+
+  document.getElementById('tms_txt_output').value = result.trim();
+  document.getElementById('tms_txt_outputcount').hidden = true;
 }
 
 function _0x4d24(_0x1fac2a, _0x4baccc) {
