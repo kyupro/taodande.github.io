@@ -861,3 +861,236 @@ playback timings (ms):
   PetaboxLoader3.resolve: 186.386 (2)
   load_resource: 630.09
 */
+
+/* ===== PATCH FIX BỎ/THEM INPUT 2D ===== */
+function __xsParse2DList(value) {
+  return Array.from(new Set(String(value || '')
+    .split(/\D+/)
+    .filter(Boolean)
+    .map(s => String(s).padStart(2, '0')))).sort();
+}
+
+function __xsParseDigits(value) {
+  return Array.from(new Set(String(value || '').replace(/\D/g, '').split('').filter(Boolean))).sort();
+}
+
+function __xsSetOutput(outputId, countId, arr) {
+  const outputEl = document.getElementById(outputId);
+  const countEl = document.getElementById(countId);
+  const result = Array.from(new Set(arr)).sort();
+  outputEl.value = result.length ? result.join(',') : 'Không có số nào!';
+  if (countEl) {
+    countEl.hidden = result.length === 0;
+    countEl.style.display = result.length === 0 ? 'none' : 'block';
+    countEl.innerText = `( ${result.length} số )`;
+  }
+  return result;
+}
+
+function __xsApplyAddRemove(baseArr, themValue, boValue) {
+  let result = Array.from(new Set(baseArr.map(v => String(v).padStart(2, '0'))));
+  const boList = __xsParse2DList(boValue);
+  if (boList.length) {
+    result = result.filter(v => !boList.includes(v));
+  }
+  const themList = __xsParse2DList(themValue);
+  if (themList.length) {
+    result = Array.from(new Set(result.concat(themList)));
+  }
+  return result.sort();
+}
+
+function __xsAll2D() {
+  return Array.from({ length: 100 }, (_, i) => String(i).padStart(2, '0'));
+}
+
+function __xsSumOk(num, tongDigits) {
+  if (!tongDigits.length) return true;
+  const s = (Number(num.charAt(0)) + Number(num.charAt(1))) % 10;
+  return tongDigits.includes(String(s));
+}
+
+function __xsBoSet(groupValue) {
+  const groups = Array.from(new Set(String(groupValue || '')
+    .split(/\D+/)
+    .filter(Boolean)
+    .filter(v => v.length === 2)));
+  const out = [];
+  groups.forEach(g => {
+    const s = bo_so(g);
+    if (s) {
+      s.split(',').forEach(v => {
+        if (/^\d{2}$/.test(v)) out.push(v);
+      });
+    }
+  });
+  return Array.from(new Set(out)).sort();
+}
+
+add_rmv = function(_6, _178, _302) {
+  return disp_arr_wt_total(__xsApplyAddRemove(_6, _178, _302));
+};
+
+dau_duoi_kh = function() {
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input1').value);
+  const duoi = __xsParseDigits(document.getElementById('td2d_duoi_input').value);
+  const dau = __xsParseDigits(document.getElementById('td2d_dau_input').value);
+  const them = document.getElementById('td2d_them_input1').value;
+  const bo = document.getElementById('td2d_bot_input1').value;
+
+  const numOfCondition = (tong.length ? 1 : 0) + (duoi.length ? 1 : 0) + (dau.length ? 1 : 0);
+  if (numOfCondition <= 1) return __xsSetOutput('td2d_txt_output2', 'td2d_txt_output2count', []);
+
+  let result = __xsAll2D().filter(n => {
+    return (!dau.length || dau.includes(n.charAt(0))) &&
+           (!duoi.length || duoi.includes(n.charAt(1))) &&
+           __xsSumOk(n, tong);
+  });
+
+  result = __xsApplyAddRemove(result, them, bo);
+  return __xsSetOutput('td2d_txt_output2', 'td2d_txt_output2count', result);
+};
+
+dau_duoi_all = function() {
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input1').value);
+  const duoi = __xsParseDigits(document.getElementById('td2d_duoi_input').value);
+  const dau = __xsParseDigits(document.getElementById('td2d_dau_input').value);
+  const them = document.getElementById('td2d_them_input1').value;
+  const bo = document.getElementById('td2d_bot_input1').value;
+
+  if (!tong.length && !duoi.length && !dau.length) return __xsSetOutput('td2d_txt_output2', 'td2d_txt_output2count', []);
+
+  const result = [];
+  __xsAll2D().forEach(n => {
+    const ok = (dau.length && dau.includes(n.charAt(0))) ||
+               (duoi.length && duoi.includes(n.charAt(1))) ||
+               (!tong.length ? false : __xsSumOk(n, tong));
+    if (ok) result.push(n);
+  });
+
+  return __xsSetOutput('td2d_txt_output2', 'td2d_txt_output2count', __xsApplyAddRemove(result, them, bo));
+};
+
+dau_duoi_loai = function() {
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input1').value);
+  const duoi = __xsParseDigits(document.getElementById('td2d_duoi_input').value);
+  const dau = __xsParseDigits(document.getElementById('td2d_dau_input').value);
+  const them = document.getElementById('td2d_them_input1').value;
+  const bo = document.getElementById('td2d_bot_input1').value;
+
+  const result = __xsAll2D().filter(n => {
+    const matched = (dau.length && dau.includes(n.charAt(0))) ||
+                    (duoi.length && duoi.includes(n.charAt(1))) ||
+                    (!tong.length ? false : __xsSumOk(n, tong));
+    return !matched;
+  });
+
+  return __xsSetOutput('td2d_txt_output2', 'td2d_txt_output2count', __xsApplyAddRemove(result, them, bo));
+};
+
+cham_kh = function() {
+  const cham = __xsParseDigits(document.getElementById('td2d_cham_input2').value);
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input2').value);
+  const them = document.getElementById('td2d_them_input2').value;
+  const bo = document.getElementById('td2d_bot_input2').value;
+
+  if (!(cham.length && tong.length)) return __xsSetOutput('td2d_txt_output3', 'td2d_txt_output3count', []);
+
+  let result = __xsAll2D().filter(n => {
+    const hitCham = cham.includes(n.charAt(0)) || cham.includes(n.charAt(1));
+    return hitCham && __xsSumOk(n, tong);
+  });
+
+  result = __xsApplyAddRemove(result, them, bo);
+  return __xsSetOutput('td2d_txt_output3', 'td2d_txt_output3count', result);
+};
+
+cham_all = function() {
+  const cham = __xsParseDigits(document.getElementById('td2d_cham_input2').value);
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input2').value);
+  const them = document.getElementById('td2d_them_input2').value;
+  const bo = document.getElementById('td2d_bot_input2').value;
+
+  if (!(cham.length || tong.length)) return __xsSetOutput('td2d_txt_output3', 'td2d_txt_output3count', []);
+
+  const result = __xsAll2D().filter(n => {
+    const hitCham = cham.length && (cham.includes(n.charAt(0)) || cham.includes(n.charAt(1)));
+    const hitTong = tong.length && __xsSumOk(n, tong);
+    return hitCham || hitTong;
+  });
+
+  return __xsSetOutput('td2d_txt_output3', 'td2d_txt_output3count', __xsApplyAddRemove(result, them, bo));
+};
+
+cham_loai = function() {
+  const cham = __xsParseDigits(document.getElementById('td2d_cham_input2').value);
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input2').value);
+  const them = document.getElementById('td2d_them_input2').value;
+  const bo = document.getElementById('td2d_bot_input2').value;
+
+  const result = __xsAll2D().filter(n => {
+    const hitCham = cham.length && (cham.includes(n.charAt(0)) || cham.includes(n.charAt(1)));
+    const hitTong = tong.length && __xsSumOk(n, tong);
+    return !(hitCham || hitTong);
+  });
+
+  return __xsSetOutput('td2d_txt_output3', 'td2d_txt_output3count', __xsApplyAddRemove(result, them, bo));
+};
+
+bo_kh = function() {
+  const boDigits = __xsParseDigits(document.getElementById('td2d_group_input').value);
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input3').value);
+  const them = document.getElementById('td2d_them_input3').value;
+  const bo = document.getElementById('td2d_bot_input3').value;
+
+  if (!(boDigits.length === 2 && tong.length)) return __xsSetOutput('td2d_txt_output4', 'td2d_txt_output4count', []);
+
+  let result = __xsBoSet(boDigits.join('')).filter(n => __xsSumOk(n, tong));
+  result = __xsApplyAddRemove(result, them, bo);
+  return __xsSetOutput('td2d_txt_output4', 'td2d_txt_output4count', result);
+};
+
+bo_all = function() {
+  const groupValue = document.getElementById('td2d_group_input').value;
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input3').value);
+  const them = document.getElementById('td2d_them_input3').value;
+  const bo = document.getElementById('td2d_bot_input3').value;
+
+  if (!String(groupValue).trim() && !tong.length) return __xsSetOutput('td2d_txt_output4', 'td2d_txt_output4count', []);
+
+  const boSet = __xsBoSet(groupValue);
+  const result = __xsAll2D().filter(n => boSet.includes(n) || (tong.length && __xsSumOk(n, tong)));
+  return __xsSetOutput('td2d_txt_output4', 'td2d_txt_output4count', __xsApplyAddRemove(result, them, bo));
+};
+
+bo_loai = function() {
+  const groupValue = document.getElementById('td2d_group_input').value;
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input3').value);
+  const them = document.getElementById('td2d_them_input3').value;
+  const bo = document.getElementById('td2d_bot_input3').value;
+
+  const boSet = __xsBoSet(groupValue);
+  const result = __xsAll2D().filter(n => !(boSet.includes(n) || (tong.length && __xsSumOk(n, tong))));
+  return __xsSetOutput('td2d_txt_output4', 'td2d_txt_output4count', __xsApplyAddRemove(result, them, bo));
+};
+
+bo_tong = function(mode) {
+  const groupValue = document.getElementById('td2d_group_input').value;
+  const tong = __xsParseDigits(document.getElementById('td2d_tong_input3').value);
+  const them = document.getElementById('td2d_them_input3').value;
+  const bo = document.getElementById('td2d_bot_input3').value;
+
+  const boSet = __xsBoSet(groupValue);
+  let result = __xsAll2D().filter(n => {
+    const inBo = boSet.includes(n);
+    const inTong = tong.length && __xsSumOk(n, tong);
+    if (mode === 1) return inBo && inTong;
+    if (mode === 2) return inBo || inTong;
+    if (mode === 3) return !inBo && !inTong;
+    return false;
+  });
+
+  result = __xsApplyAddRemove(result, them, bo);
+  return __xsSetOutput('td2d_txt_output4', 'td2d_txt_output4count', result);
+};
+/* ===== END PATCH ===== */
