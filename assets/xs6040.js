@@ -104,22 +104,48 @@ function _0x4d24(_0x1fac2a, _0x4baccc) {
 }
 
 function taoMuc34() {
-    const _0x212ad1 = _0x4d24;
-    input = document[_0x212ad1(0x170)](_0x212ad1(0x138))[_0x212ad1(0x13a)], counts = new Array(0x2710)['fill'](0x0), excepts = [], is4D = ![], getNumbers(input)['forEach'](_0x734d7e => {
-        const _0x4ead3d = _0x212ad1;
-        if (_0x734d7e >= 0x0 && _0x734d7e <= 0x270f) {
-            if (_0x734d7e >= 0x3e8) is4D = !![];
-            counts[_0x734d7e] += 0x1;
-        } else excepts[_0x4ead3d(0x163)](_0x734d7e);
-    }), groups = Array[_0x212ad1(0x177)](new Set(counts))[_0x212ad1(0x14c)]((_0x470a08, _0xe166ff) => _0x470a08 - _0xe166ff), result = excepts[_0x212ad1(0x13f)] > 0x0 ? _0x212ad1(0x140) + excepts[_0x212ad1(0x13f)] + _0x212ad1(0x124) + excepts + '\x0a\x0a' : '', groups['forEach'](_0x2b4486 => {
-        const _0x4cbdbd = _0x212ad1;
-        numbers = [];
-        for (let _0x22d66f = 0x0; _0x22d66f < counts[_0x4cbdbd(0x13f)]; ++_0x22d66f) {
-            if (_0x22d66f >= 0x3e8 && !is4D) break;
-            if (_0x2b4486 == counts[_0x22d66f]) numbers['push'](_0x22d66f[_0x4cbdbd(0x155)]()[_0x4cbdbd(0x120)](is4D ? 0x4 : 0x3, '0'));
-        }
-        result += _0x4cbdbd(0x127) + _0x2b4486 + ':\x20(' + numbers[_0x4cbdbd(0x13f)] + _0x4cbdbd(0x12b) + numbers + '\x0a';
-    }), document[_0x212ad1(0x170)]('tms_txt_output')[_0x212ad1(0x13a)] = result, document[_0x212ad1(0x170)](_0x212ad1(0x131))[_0x212ad1(0x156)] = !![];
+  const input = document.getElementById('tms_txt_input').value;
+  const output = document.getElementById('tms_txt_output');
+  const outputCount = document.getElementById('tms_txt_outputcount');
+
+  // Giữ nguyên đầu 0, chỉ lấy đúng token 3D hoặc 4D
+  const tokens = String(input).match(/\d{3,4}/g) || [];
+
+  if (tokens.length === 0) {
+    output.value = 'Không có số nào!';
+    outputCount.hidden = true;
+    return;
+  }
+
+  // Xác định đang có 4D hay không
+  const is4D = tokens.some(tok => tok.length === 4);
+
+  // Nếu trộn cả 3D và 4D thì vẫn tách riêng theo đúng độ dài
+  const validTokens = tokens.filter(tok => tok.length === 3 || tok.length === 4);
+
+  const countsMap = new Map();
+  validTokens.forEach(tok => {
+    countsMap.set(tok, (countsMap.get(tok) || 0) + 1);
+  });
+
+  const levels = Array.from(new Set(countsMap.values())).sort((a, b) => a - b);
+
+  let result = '';
+
+  levels.forEach(level => {
+    const numbers = Array.from(countsMap.entries())
+      .filter(([num, count]) => count === level)
+      .map(([num]) => num)
+      .sort((a, b) => {
+        if (a.length !== b.length) return a.length - b.length;
+        return a.localeCompare(b);
+      });
+
+    result += `Mức ${level}: (${numbers.length} số)\n${numbers.join(',')}\n\n`;
+  });
+
+  output.value = result.trim();
+  outputCount.hidden = true;
 }
 
 function layDan2D() {
